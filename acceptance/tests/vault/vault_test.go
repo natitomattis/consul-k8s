@@ -152,6 +152,10 @@ func TestVault(t *testing.T) {
 	}
 	srvCAAuthRoleConfig.ConfigureK8SAuthRole(t, vaultClient)
 
+	pathForConnectInjectWebookCerts :=
+		vault.ConfigurePKICertificatesForConnectInjectWebhook(t, vaultClient,
+			consulReleaseName, ns, "dc1", "1h")
+
 	vaultCASecret := vault.CASecretName(vaultReleaseName)
 
 	consulHelmValues := map[string]string{
@@ -159,9 +163,10 @@ func TestVault(t *testing.T) {
 		"server.extraVolumes[0].name": vaultCASecret,
 		"server.extraVolumes[0].load": "false",
 
-		"connectInject.enabled":  "true",
-		"connectInject.replicas": "1",
-		"controller.enabled":     "true",
+		"connectInject.enabled":    "true",
+		"connectInject.replicas":   "1",
+		"connectInject.tlsCertDir": pathForConnectInjectWebookCerts,
+		"controller.enabled":       "true",
 
 		"global.secretsBackend.vault.enabled":              "true",
 		"global.secretsBackend.vault.consulServerRole":     consulServerRole,
