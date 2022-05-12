@@ -205,23 +205,15 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 	// -------------------------
 	// PKI
 	// -------------------------
-	// Configure Service Mesh CA
 	// dc1
+	// Configure Service Mesh CA
 	connectCAPolicy := "connect-ca-dc1"
 	connectCARootPath := "connect_root"
 	connectCAIntermediatePath := "dc1/connect_inter"
 	// Configure Policy for Connect CA
 	vault.CreateConnectCARootAndIntermediatePKIPolicy(t, vaultClient, connectCAPolicy, connectCARootPath, connectCAIntermediatePath)
 
-	// dc2
-	connectCAPolicySecondary := "connect-ca-dc2"
-	connectCARootPathSecondary := "connect_root"
-	connectCAIntermediatePathSecondary := "dc2/connect_inter"
-	// Configure Policy for Connect CA
-	vault.CreateConnectCARootAndIntermediatePKIPolicy(t, vaultClient, connectCAPolicySecondary, connectCARootPathSecondary, connectCAIntermediatePathSecondary)
-
-	// Configure Server PKI
-	// dc1
+	//Configure Server PKI
 	serverPKIConfig := &vault.PKIAndAuthRoleConfiguration{
 		BaseURL:             "pki",
 		PolicyName:          "consul-ca-policy",
@@ -234,7 +226,16 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 		AuthMethodPath:      "kubernetes",
 	}
 	vault.ConfigurePKIAndAuthRole(t, vaultClient, serverPKIConfig)
+
 	// dc2
+	// Configure Service Mesh CA
+	connectCAPolicySecondary := "connect-ca-dc2"
+	connectCARootPathSecondary := "connect_root"
+	connectCAIntermediatePathSecondary := "dc2/connect_inter"
+	// Configure Policy for Connect CA
+	vault.CreateConnectCARootAndIntermediatePKIPolicy(t, vaultClient, connectCAPolicySecondary, connectCARootPathSecondary, connectCAIntermediatePathSecondary)
+
+	//Configure Server PKI
 	serverPKIConfigSecondary := &vault.PKIAndAuthRoleConfiguration{
 		BaseURL:             "pki",
 		PolicyName:          "consul-ca-policy-dc2",
@@ -244,15 +245,15 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 		ServiceAccountName:  fmt.Sprintf("%s-consul-%s", consulReleaseName, "server"),
 		AllowedSubdomain:    fmt.Sprintf("%s-consul-%s", consulReleaseName, "server"),
 		MaxTTL:              "1h",
-		AuthMethodPath:      secondaryDatacenterAuthMethod,
-		SkipMountPKIEngine:  true,
+		AuthMethodPath:      secondaryAuthMethodName,
+		SkipPKIMount:        true,
 	}
 	vault.ConfigurePKIAndAuthRole(t, vaultClient, serverPKIConfigSecondary)
 
 	// -------------------------
 	// KV2 secrets
 	// -------------------------
-	// Gossip key
+	//Gossip key
 	gossipKey, err := vault.GenerateGossipSecret()
 	require.NoError(t, err)
 	gossipSecret := &vault.SaveVaultSecretConfiguration{
@@ -263,7 +264,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 	}
 	vault.SaveSecret(t, vaultClient, gossipSecret)
 
-	// License
+	//License
 	licenseSecret := &vault.SaveVaultSecretConfiguration{
 		Path:       "consul/data/secret/license",
 		Key:        "license",
@@ -274,7 +275,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 		vault.SaveSecret(t, vaultClient, licenseSecret)
 	}
 
-	// Bootstrap Token
+	//Bootstrap Token
 	bootstrapToken, err := uuid.GenerateUUID()
 	require.NoError(t, err)
 	bootstrapTokenSecret := &vault.SaveVaultSecretConfiguration{
