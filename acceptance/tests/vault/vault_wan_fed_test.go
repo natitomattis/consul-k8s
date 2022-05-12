@@ -235,7 +235,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 	// Configure Policy for Connect CA
 	vault.CreateConnectCARootAndIntermediatePKIPolicy(t, vaultClient, connectCAPolicySecondary, connectCARootPathSecondary, connectCAIntermediatePathSecondary)
 
-	//Configure Server PKI
+	// Configure Server PKI
 	serverPKIConfigSecondary := &vault.PKIAndAuthRoleConfiguration{
 		BaseURL:             "pki",
 		PolicyName:          "consul-ca-policy-dc2",
@@ -253,7 +253,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 	// -------------------------
 	// KV2 secrets
 	// -------------------------
-	//Gossip key
+	// Gossip key
 	gossipKey, err := vault.GenerateGossipSecret()
 	require.NoError(t, err)
 	gossipSecret := &vault.SaveVaultSecretConfiguration{
@@ -264,7 +264,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 	}
 	vault.SaveSecret(t, vaultClient, gossipSecret)
 
-	//License
+	// License
 	licenseSecret := &vault.SaveVaultSecretConfiguration{
 		Path:       "consul/data/secret/license",
 		Key:        "license",
@@ -275,7 +275,7 @@ func TestVault_WANFederationViaGateways(t *testing.T) {
 		vault.SaveSecret(t, vaultClient, licenseSecret)
 	}
 
-	//Bootstrap Token
+	// Bootstrap Token
 	bootstrapToken, err := uuid.GenerateUUID()
 	require.NoError(t, err)
 	bootstrapTokenSecret := &vault.SaveVaultSecretConfiguration{
