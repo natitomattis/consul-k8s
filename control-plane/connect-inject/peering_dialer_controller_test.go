@@ -91,8 +91,7 @@ func TestReconcileDeletePeeringDialer(t *testing.T) {
 			require.False(t, resp.Requeue)
 
 			// After reconciliation, Consul should not have the peering.
-			readReq := api.PeeringReadRequest{Name: "dialer-deleted"}
-			peering, _, err := consulClient.Peerings().Read(context.Background(), readReq, nil)
+			peering, _, err := consulClient.Peerings().Read(context.Background(), "dialer-deleted", nil)
 			var statusErr api.StatusError
 			require.ErrorAs(t, err, &statusErr)
 			require.Equal(t, http.StatusNotFound, statusErr.Code)

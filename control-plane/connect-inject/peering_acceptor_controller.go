@@ -54,7 +54,7 @@ func (r *PeeringAcceptorController) Reconcile(ctx context.Context, req ctrl.Requ
 	// error), we need to delete it in Consul.
 	if k8serrors.IsNotFound(err) {
 		r.Log.Info("PeeringAcceptor was deleted, deleting from Consul", "name", req.Name, "ns", req.Namespace)
-		_, err := r.deletePeering(ctx, req.Name)
+		err := r.deletePeering(ctx, req.Name)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -77,8 +77,7 @@ func (r *PeeringAcceptorController) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	// Read the peering from Consul.
-	readReq := api.PeeringReadRequest{Name: peeringAcceptor.Name}
-	peering, _, err := r.ConsulClient.Peerings().Read(ctx, readReq, nil)
+	peering, _, err := r.ConsulClient.Peerings().Read(ctx, peeringAcceptor.Name, nil)
 	var statusErr api.StatusError
 
 	var secretResourceVersion string
@@ -307,16 +306,13 @@ func (r *PeeringAcceptorController) generateToken(ctx context.Context, peerName 
 }
 
 // deletePeering is a helper function that calls the Consul api to delete a peering.
-func (r *PeeringAcceptorController) deletePeering(ctx context.Context, peerName string) (*api.PeeringDeleteResponse, error) {
-	deleteReq := api.PeeringDeleteRequest{
-		Name: peerName,
-	}
-	resp, _, err := r.ConsulClient.Peerings().Delete(ctx, deleteReq, nil)
+func (r *PeeringAcceptorController) deletePeering(ctx context.Context, peerName string) error {
+	_, err := r.ConsulClient.Peerings().Delete(ctx, peerName, nil)
 	if err != nil {
 		r.Log.Error(err, "failed to delete Peering from Consul", "name", peerName)
-		return nil, err
+		return err
 	}
-	return resp, nil
+	return nil
 }
 
 // createSecret is a helper function that creates a corev1.SecretRef when provided inputs.
