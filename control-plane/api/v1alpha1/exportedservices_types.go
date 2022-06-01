@@ -1,9 +1,6 @@
 package v1alpha1
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/consul-k8s/control-plane/api/common"
@@ -191,15 +188,6 @@ func (in *ExportedServices) MatchesConsul(candidate api.ConfigEntry) bool {
 
 func (in *ExportedServices) Validate(consulMeta common.ConsulMeta) error {
 	var errs field.ErrorList
-	if !consulMeta.PartitionsEnabled {
-		return apierrors.NewForbidden(
-			schema.GroupResource{Group: ConsulHashicorpGroup, Resource: common.ExportedServices},
-			in.KubernetesName(),
-			errors.New("Consul Enterprise Admin Partitions must be enabled to create ExportedServices"))
-	}
-	if in.Name != consulMeta.Partition {
-		errs = append(errs, field.Invalid(field.NewPath("name"), in.Name, fmt.Sprintf(`%s resource name must be the same name as the partition, "%s"`, in.KubeKind(), consulMeta.Partition)))
-	}
 	if len(in.Spec.Services) == 0 {
 		errs = append(errs, field.Invalid(field.NewPath("spec").Child("services"), in.Spec.Services, "at least one service must be exported"))
 	}
