@@ -92,6 +92,7 @@ func TestReconcileDeletePeeringDialer(t *testing.T) {
 			// After reconciliation, Consul should not have the peering.
 			peering, _, err := consulClient.Peerings().Read(context.Background(), "dialer-deleted", nil)
 			require.Nil(t, peering)
+			require.NoError(t, err)
 		})
 	}
 }
