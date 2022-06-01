@@ -2,7 +2,6 @@ package connectinject
 
 import (
 	"context"
-	"net/http"
 	"testing"
 
 	logrtest "github.com/go-logr/logr/testing"
@@ -92,9 +91,6 @@ func TestReconcileDeletePeeringDialer(t *testing.T) {
 
 			// After reconciliation, Consul should not have the peering.
 			peering, _, err := consulClient.Peerings().Read(context.Background(), "dialer-deleted", nil)
-			var statusErr api.StatusError
-			require.ErrorAs(t, err, &statusErr)
-			require.Equal(t, http.StatusNotFound, statusErr.Code)
 			require.Nil(t, peering)
 		})
 	}

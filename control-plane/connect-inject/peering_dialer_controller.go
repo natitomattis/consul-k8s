@@ -3,7 +3,6 @@ package connectinject
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -113,14 +112,11 @@ func (r *PeeringDialerController) Reconcile(ctx context.Context, req ctrl.Reques
 	// TODO(peering): do we need to pass in partition?
 	r.Log.Info("reading peering from Consul", "name", peeringDialer.Name)
 	peering, _, err := r.ConsulClient.Peerings().Read(ctx, peeringDialer.Name, nil)
-	var statusErr api.StatusError
-	peeringExists := true
-	if errors.As(err, &statusErr) && statusErr.Code == http.StatusNotFound && peering == nil {
-		peeringExists = false
-	} else if err != nil {
+	if err != nil {
 		r.Log.Error(err, "failed to get Peering from Consul", "name", req.Name)
 		return ctrl.Result{}, err
 	}
+	peeringExists := peering != nil
 	// TODO(peering): Verify that the existing peering in Consul is an dialer peer. If it is an acceptor peer, an error should be thrown.
 
 	// At this point, we know the spec secret exists. If the status secret doesn't

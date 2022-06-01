@@ -3,7 +3,6 @@ package connectinject
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -76,15 +75,18 @@ func (r *PeeringAcceptorController) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
+	var secretResourceVersion string
+
 	// Read the peering from Consul.
 	peering, _, err := r.ConsulClient.Peerings().Read(ctx, peeringAcceptor.Name, nil)
-	var statusErr api.StatusError
-
-	var secretResourceVersion string
+	if err != nil {
+		r.Log.Error(err, "failed to get Peering from Consul", "name", req.Name)
+		return ctrl.Result{}, err
+	}
 
 	// If the peering doesn't exist in Consul, generate a new token, and store it in the specified backend. Store the
 	// current state in the status.
-	if errors.As(err, &statusErr) && statusErr.Code == http.StatusNotFound && peering == nil {
+	if peering == nil {
 		r.Log.Info("peering doesn't exist in Consul", "name", peeringAcceptor.Name)
 
 		if statusSecretSet {

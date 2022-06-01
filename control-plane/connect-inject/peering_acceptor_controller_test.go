@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"net/http"
 	"testing"
 
 	logrtest "github.com/go-logr/logr/testing"
@@ -495,9 +494,6 @@ func TestReconcileDeletePeeringAcceptor(t *testing.T) {
 
 			// After reconciliation, Consul should not have the peering.
 			peering, _, err := consulClient.Peerings().Read(context.Background(), "acceptor-deleted", nil)
-			var statusErr api.StatusError
-			require.ErrorAs(t, err, &statusErr)
-			require.Equal(t, http.StatusNotFound, statusErr.Code)
 			require.Nil(t, peering)
 		})
 	}
