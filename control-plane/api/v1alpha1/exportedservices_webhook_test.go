@@ -75,6 +75,52 @@ func TestValidateExportedServices(t *testing.T) {
 			expAllow:      false,
 			expErrMessage: "exportedservices resource already defined - only one exportedservices entry is supported per Kubernetes cluster",
 		},
+		"name not partition name": {
+			existingResources: []runtime.Object{},
+			newResource: &ExportedServices{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "local",
+				},
+				Spec: ExportedServicesSpec{
+					Services: []ExportedService{
+						{
+							Name:      "service",
+							Namespace: "service-ns",
+							Consumers: []ServiceConsumer{{Partition: "other"}},
+						},
+					},
+				},
+			},
+			consulMeta: common.ConsulMeta{
+				PartitionsEnabled: true,
+				Partition:         otherPartition,
+			},
+			expAllow:      false,
+			expErrMessage: "exportedservices.consul.hashicorp.com \"local\" is invalid: name: Invalid value: \"local\": exportedservices resource name must be the same name as the partition, \"other\"",
+		},
+		"partitions disabled": {
+			existingResources: []runtime.Object{},
+			newResource: &ExportedServices{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: otherPartition,
+				},
+				Spec: ExportedServicesSpec{
+					Services: []ExportedService{
+						{
+							Name:      "service",
+							Namespace: "service-ns",
+							Consumers: []ServiceConsumer{{Partition: "other"}},
+						},
+					},
+				},
+			},
+			consulMeta: common.ConsulMeta{
+				PartitionsEnabled: false,
+				Partition:         "",
+			},
+			expAllow:      false,
+			expErrMessage: "exportedservices.consul.hashicorp.com \"other\" is forbidden: Consul Enterprise Admin Partitions must be enabled to create ExportedServices",
+		},
 		"no services": {
 			existingResources: []runtime.Object{},
 			newResource: &ExportedServices{
